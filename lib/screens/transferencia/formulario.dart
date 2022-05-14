@@ -23,6 +23,7 @@ class FormularioTransferenciaState extends State<FormularioTransferencia> {
     return Scaffold(
       appBar: AppBar(title: const Text(_tituloAppBar)),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.all(12),
         child: Column(
           children: [
             Editor(
@@ -39,7 +40,10 @@ class FormularioTransferenciaState extends State<FormularioTransferencia> {
             ElevatedButton(
               onPressed: () => _criarTransferencia(context),
               child: const Text('Confirmar'),
-            )
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(40),
+              ),
+            ),
           ],
         ),
       ),
