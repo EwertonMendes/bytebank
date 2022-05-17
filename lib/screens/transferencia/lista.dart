@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
-
+import 'dart:convert';
+import 'dart:io';
 import '../../models/transferencia.dart';
 import 'formulario.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class ListaTransferencias extends StatefulWidget {
+  Future<String> getJson() async {
+    return await rootBundle.loadString('assets/transferencias.json');
+  }
+
   final List<Transferencia> _transferencias = <Transferencia>[];
 
   @override
@@ -13,6 +19,28 @@ class ListaTransferencias extends StatefulWidget {
 }
 
 class ListaTransferenciasState extends State<ListaTransferencias> {
+  Future<List> readJson() async {
+    final String response = await rootBundle.loadString('lib/db/database.json');
+    final data = await json.decode(response);
+    return data;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    readJson().then(
+      (value) => setState(
+        () {
+          for (var item in value) {
+            widget._transferencias.add(Transferencia(
+              double.parse(item['value']),
+              int.parse(item['accountNumber'])));
+          }
+        },
+      ),
+    );
+  }
+
   Widget emptableList(List list, BuildContext context) {
     return list.isNotEmpty
         ? ListView.builder(
@@ -29,7 +57,7 @@ class ListaTransferenciasState extends State<ListaTransferencias> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 20,
-                  color:Colors.grey,
+                  color: Colors.grey,
                 ),
               ),
             ),
