@@ -58,7 +58,7 @@ class FormularioTransferenciaState extends State<FormularioTransferencia> {
       return;
     }
 
-    final novaTransferencia = Transferencia(valor, numeroConta);
+    final novaTransferencia = Transferencia(valor, numeroConta, 'processing');
     Navigator.pop(context, novaTransferencia);
   }
 }

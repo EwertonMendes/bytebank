@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'dart:io';
 import '../../models/transferencia.dart';
 import 'formulario.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 class ListaTransferencias extends StatefulWidget {
+  ListaTransferencias({Key? key}) : super(key: key);
+
   Future<String> getJson() async {
     return await rootBundle.loadString('assets/transferencias.json');
   }
@@ -21,20 +22,22 @@ class ListaTransferencias extends StatefulWidget {
 class ListaTransferenciasState extends State<ListaTransferencias> {
   Future<List> readJson() async {
     final String response = await rootBundle.loadString('lib/db/database.json');
-    final data = await json.decode(response);
-    return data;
+    return await json.decode(response);
   }
 
   @override
   void initState() {
     super.initState();
     readJson().then(
-      (value) => setState(
+      (transferences) => setState(
         () {
-          for (var item in value) {
-            widget._transferencias.add(Transferencia(
-              double.parse(item['value']),
-              int.parse(item['accountNumber'])));
+          for (var transference in transferences) {
+            Transferencia transferencia = Transferencia(
+              double.parse(transference['value']),
+              int.parse(transference['accountNumber']),
+              transference['status'],
+            );
+            widget._transferencias.add(transferencia);
           }
         },
       ),
@@ -72,23 +75,27 @@ class ListaTransferenciasState extends State<ListaTransferencias> {
       ),
       body: emptableList(widget._transferencias, context),
       floatingActionButton: FloatingActionButton(
-          child: const Icon(Icons.add),
-          onPressed: () {
-            final Future future = Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const FormularioTransferencia(),
-              ),
-            );
-            future.then((transferenciaRecebida) {
+        child: const Icon(Icons.add),
+        onPressed: () {
+          final Future future = Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const FormularioTransferencia(),
+            ),
+          );
+          future.then(
+            (transferenciaRecebida) {
               debugPrint('Future');
               debugPrint('$transferenciaRecebida');
               if (transferenciaRecebida != null) {
                 setState(
-                    () => widget._transferencias.add(transferenciaRecebida));
+                  () => widget._transferencias.add(transferenciaRecebida),
+                );
               }
-            });
-          }),
+            },
+          );
+        },
+      ),
     );
   }
 }
@@ -98,6 +105,18 @@ class ItemTransferencia extends StatelessWidget {
 
   const ItemTransferencia(this._transferencia, {Key? key}) : super(key: key);
 
+  Color _corTransferencia() {
+    if (_transferencia.status == 'processing') {
+      return Colors.amber;
+    }
+
+    if (_transferencia.status == 'canceled') {
+      return Colors.grey[500]!;
+    }
+
+    return Colors.green;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -105,7 +124,9 @@ class ItemTransferencia extends StatelessWidget {
         child: ListTile(
           leading: const Icon(Icons.monetization_on),
           title: Text(_transferencia.valor.toString()),
-          subtitle: Text(_transferencia.numeroConta.toString()),
+          subtitle: Text(
+              '${_transferencia.numeroConta.toString()} | ${_transferencia.status.toUpperCase()}'),
+          tileColor: _corTransferencia(),
         ));
   }
 }
